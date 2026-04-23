@@ -1,5 +1,38 @@
 menu "Zigbee Network Co-processor"
 
+    config BOARD_XIAO_ESP32C6_RF_SWITCH
+        bool "Enable Seeed Studio XIAO ESP32-C6 RF switch control"
+        default n
+        help
+            Configure GPIOs used by the Seeed Studio XIAO ESP32-C6 RF switch.
+
+    if BOARD_XIAO_ESP32C6_RF_SWITCH
+
+        config XIAO_ESP32C6_RF_POWER_GPIO
+            int
+            default 3
+            range 0 30
+            prompt "RF switch power GPIO"
+            help
+                GPIO used to activate RF switch control logic.
+
+        config XIAO_ESP32C6_RF_SELECT_GPIO
+            int
+            default 14
+            range 0 30
+            prompt "RF switch antenna select GPIO"
+            help
+                GPIO used to select onboard or external antenna.
+
+        config XIAO_ESP32C6_USE_EXTERNAL_ANTENNA
+            bool "Use external antenna"
+            default y
+            help
+                When enabled the antenna select GPIO is driven high,
+                otherwise low for the onboard ceramic antenna.
+
+    endif # BOARD_XIAO_ESP32C6_RF_SWITCH
+
     choice NCP_BUS_MODE
         bool "Host Connection Mode"
         default NCP_BUS_MODE_UART
@@ -180,4 +213,3 @@ menu "Zigbee"
             Setting Zigbee stack debug mode.
     
 endmenu
-

@@ -4,8 +4,32 @@
 #include "zb_ncp.h"
 #include <nvs_flash.h>
 #include <esp_log.h>
+#include <driver/gpio.h>
 
 static const char* TAG = "APP";
+
+static esp_err_t init_board_pins() {
+#if CONFIG_BOARD_XIAO_ESP32C6_RF_SWITCH
+    constexpr gpio_num_t rf_power_pin = static_cast<gpio_num_t>(CONFIG_XIAO_ESP32C6_RF_POWER_GPIO);
+    constexpr gpio_num_t rf_select_pin = static_cast<gpio_num_t>(CONFIG_XIAO_ESP32C6_RF_SELECT_GPIO);
+
+    ESP_RETURN_ON_ERROR(gpio_reset_pin(rf_power_pin), TAG, "Failed to reset RF power pin");
+    ESP_RETURN_ON_ERROR(gpio_set_direction(rf_power_pin, GPIO_MODE_OUTPUT), TAG, "Failed to set RF power pin mode");
+    ESP_RETURN_ON_ERROR(gpio_set_level(rf_power_pin, 0), TAG, "Failed to set RF power pin level");
+
+    ESP_RETURN_ON_ERROR(gpio_reset_pin(rf_select_pin), TAG, "Failed to reset RF select pin");
+    ESP_RETURN_ON_ERROR(gpio_set_direction(rf_select_pin, GPIO_MODE_OUTPUT), TAG, "Failed to set RF select pin mode");
+#if CONFIG_XIAO_ESP32C6_USE_EXTERNAL_ANTENNA
+    ESP_RETURN_ON_ERROR(gpio_set_level(rf_select_pin, 1), TAG, "Failed to enable external antenna");
+    ESP_LOGI(TAG, "XIAO ESP32-C6 RF switch configured: external antenna enabled");
+#else
+    ESP_RETURN_ON_ERROR(gpio_set_level(rf_select_pin, 0), TAG, "Failed to enable onboard antenna");
+    ESP_LOGI(TAG, "XIAO ESP32-C6 RF switch configured: onboard antenna enabled");
+#endif
+#endif
+
+    return ESP_OK;
+}
 
 app::app() {
 
@@ -112,7 +136,11 @@ esp_err_t app::start_int() {
 
 esp_err_t app::init() {
 	ESP_LOGI(TAG,"init");
-	auto res = nvs_flash_init();
+	auto res = init_board_pins();
+	if (res != ESP_OK)
+		return res;
+
+	res = nvs_flash_init();
 	if (res != ESP_OK)
 		return res;
 	res = zb_ncp::init();
