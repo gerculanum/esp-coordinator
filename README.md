@@ -63,3 +63,25 @@ cd esp-coordinator/
 idf.py set-target esp32c6
 idf.py build
 ```
+
+## Seeed Studio XIAO ESP32-C6 external antenna
+
+For XIAO ESP32-C6, the RF switch must be configured in firmware before Zigbee starts.
+
+1. Run menuconfig:
+
+```bash
+idf.py menuconfig
+```
+
+2. Open **Zigbee Network Co-processor** and enable:
+   - **Enable Seeed Studio XIAO ESP32-C6 RF switch control**
+   - **Use external antenna**
+
+Defaults are GPIO3 (RF switch power/control) and GPIO14 (antenna select), which match XIAO ESP32-C6 hardware.
+
+3. Build and flash:
+
+```bash
+idf.py build flash monitor
+```
